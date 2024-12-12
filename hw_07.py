@@ -1,6 +1,7 @@
 from collections import UserDict
 from datetime import datetime, date, timedelta
 
+a = '\n'
 class Field:
 
     def __init__(self, value):
@@ -29,7 +30,7 @@ class Birthday(Field):
     def __init__(self, value):
         try:
             self.value = value
-            self.value =datetime.strptime(self.value, "%d.%m.%Y").date()
+            self.value = (datetime.strptime(self.value, '%d.%m.%Y').date()).strftime('%d.%m.%Y')
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
 
@@ -71,7 +72,7 @@ class Record:
 
     
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday}"
     
 
 class AddressBook(UserDict):
@@ -92,24 +93,25 @@ class AddressBook(UserDict):
         for record in self.data: 
             birthday =self.data.get(record).birthday
             if birthday:
+                birthday=datetime.strptime(birthday.value, '%d.%m.%Y').replace(year = today.year).date()
                 birthday_this_year.append({"name": record, "birthday": birthday})
             
         for i in birthday_this_year:
             birthday = i.get("birthday")
-            birthday = birthday.value.replace(year = today.year)
-           
-            if birthday.weekday() >=5:
-                birthday = birthday + timedelta(7-birthday.weekday())
-                if 0 < timedelta(birthday - today) <= days:
-                    i["birthday"] = birthday.strftime('%d.%m.%Y')
-                    upcoming_birthdays.append(i)       
-                    return upcoming_birthdays
+                       
+            if birthday:
+                if birthday.weekday() >=5:
+                    birthday = birthday + timedelta(7-birthday.weekday())
+                    if timedelta(0) < (birthday - today) <= timedelta(days):
+                        i["birthday"] = birthday.strftime('%d.%m.%Y')
+                        upcoming_birthdays.append(i)       
+                        return upcoming_birthdays
         if len(upcoming_birthdays) == 0:
             return "No congratulation date on this week"
                 
     
     def __str__(self):
-            return f"Contacts info: {'; '.join(str(p) for p in self.data.values())} "  
+            return f"Contacts info: {a.join(str(p) for p in self.data.values())} "  
     
 
 
@@ -184,7 +186,7 @@ def show_birthday(args, book: AddressBook):
     if record:
         birthday = record.birthday
         if birthday:
-            birthday = birthday.value.strftime('%d.%m.%Y')
+            birthday = birthday.value
             return f"Name: {record.name.value}, Birthday: {birthday}"
         else:
             return "No info about birthday"
